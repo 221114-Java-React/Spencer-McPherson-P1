@@ -22,11 +22,14 @@ public class TokenService {
     public String generateToken(Principal subject) {
         long now = System.currentTimeMillis();
         JwtBuilder tokenBuilder = Jwts.builder()
-                .setId(subject.getId())
+                .setId(subject.getUserID())
                 .setIssuer("project1")
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + jwtConfig.getExpiration()))
                 .setSubject(subject.getUsername())
+                .claim("email", subject.getEmail())
+                .claim("given_name", subject.getGiven_name())
+                .claim("is_Active", subject.isIs_Active())
                 .claim("role", subject.getRole())
                 .signWith(jwtConfig.getSigAlg(), jwtConfig.getSigningKey());
 
@@ -39,7 +42,7 @@ public class TokenService {
                     .setSigningKey(jwtConfig.getSigningKey())
                     .parseClaimsJws(token)
                     .getBody();
-            return new Principal(claims.getId(), claims.getSubject(), (claims.get("role", String.class)));
+            return new Principal(claims.getId(), claims.getSubject(), claims.get("email", String.class), claims.get("given_name", String.class), claims.get("is_Active", Boolean.class), claims.get("role", String.class));
         } catch (Exception e) {
             return null;
         }

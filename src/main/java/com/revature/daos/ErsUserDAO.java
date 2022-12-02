@@ -2,8 +2,6 @@ package com.revature.daos;
 
 import com.revature.models.ErsUser;
 import com.revature.utils.ConnectionFactory;
-import com.revature.models.Role;
-import org.eclipse.jetty.server.Authentication;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -40,6 +38,7 @@ public class ErsUserDAO implements CrudDAO<ErsUser> {
 
     @Override
     public void delete(ErsUser obj) {
+        //log out
 
     }
 
@@ -113,7 +112,7 @@ public class ErsUserDAO implements CrudDAO<ErsUser> {
     public static List<ErsUser> getAllUsersByUsername(String username) {
         List<ErsUser> users = new ArrayList<>();
         try (Connection con = ConnectionFactory.getInstance().getConnection()) {
-            PreparedStatement ps = con.prepareStatement("SELECT * FROM users WHERE username LIKE ?");
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM ers_users WHERE username LIKE ?");
             ps.setString(1, username + "%");
             ResultSet rs = ps.executeQuery();
 

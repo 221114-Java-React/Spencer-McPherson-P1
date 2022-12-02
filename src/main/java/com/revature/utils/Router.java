@@ -1,9 +1,12 @@
 package com.revature.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.revature.daos.ErsReimbursementDAO;
 import com.revature.daos.ErsUserDAO;
 import com.revature.handlers.AuthHandler;
+import com.revature.handlers.ErsReimbursementHandler;
 import com.revature.handlers.ErsUserHandler;
+import com.revature.services.ErsReimbursementService;
 import com.revature.services.ErsUserService;
 import com.revature.services.TokenService;
 import io.javalin.Javalin;
@@ -30,7 +33,9 @@ public class Router {
 
 
         //ticket
-
+        ErsReimbursementDAO ersReimbursementDAO = new ErsReimbursementDAO();
+        ErsReimbursementService ersReimbursementService = new ErsReimbursementService(ersReimbursementDAO);
+        ErsReimbursementHandler ersReimbursementHandler = new ErsReimbursementHandler(ersReimbursementService,mapper,tokenService);
 
 
         //handler groups
@@ -46,6 +51,12 @@ public class Router {
             //auth
             path("auth", () -> {
                 post(c -> authHandler.authenticateUser(c));
+            });
+
+            //ticket
+            path("/ticket", () -> {
+               post(c-> ersReimbursementHandler.newTicket(c));
+               post("/process",ersReimbursementHandler::processTicketA);
             });
 
         });

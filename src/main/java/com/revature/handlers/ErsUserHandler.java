@@ -48,14 +48,16 @@ public class ErsUserHandler {
     public void getAllUsers(Context ctx) {
 
         try {
-            String token = ctx.req.getHeader("Authorization");
+            String token = ctx.req.getHeader("authorization");
             if (token == null || token.isEmpty()) throw new InvalidAuthException("You are not signed in");
-
             Principal principal = tokenService.extractRequesterDetails(token);
+            logger.info(principal.toString());
             if (principal == null) throw new InvalidAuthException("Invalid token");
             if (!principal.getRole().equals("2")) throw new InvalidAuthException("You are not authorized to do this");
 
             List<ErsUser> users = ErsUserService.getAllUsers();
+
+            // this is a response
             ctx.json(users);
         } catch (InvalidAuthException e) {
             ctx.status(401);

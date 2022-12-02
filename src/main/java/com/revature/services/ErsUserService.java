@@ -5,7 +5,6 @@ import com.revature.dtos.requests.NewLoginRequest;
 import com.revature.dtos.requests.NewUserRequest;
 import com.revature.dtos.responses.Principal;
 import com.revature.models.ErsUser;
-import com.revature.models.Role;
 import com.revature.utils.custom_exceptions.InvalidAuthException;
 import com.revature.utils.custom_exceptions.InvalidUserException;
 
@@ -46,7 +45,8 @@ public class ErsUserService {
         if (validUser==null) {
             throw new InvalidAuthException("Invalid username or password");
         }
-        return new Principal(validUser.getUserID(), validUser.getUsername(), validUser.getRole());
+        Principal principal = new Principal(validUser.getUserID(), validUser.getUsername(), validUser.getEmail(), validUser.getGiven_name(), validUser.getIs_Active(), validUser.getRole());
+        return principal;
 
     }
     private boolean isValidUsername(String username) {
