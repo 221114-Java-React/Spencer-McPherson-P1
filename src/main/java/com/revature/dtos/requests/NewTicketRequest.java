@@ -3,7 +3,9 @@ package com.revature.dtos.requests;
 import java.math.BigDecimal;
 
 public class NewTicketRequest {
-    private BigDecimal amount;
+
+    private String reimb_id;
+    private double amount;
 
     private String description;
 
@@ -15,18 +17,20 @@ public class NewTicketRequest {
         super();
     }
 
-    public NewTicketRequest(BigDecimal amount, String description, String type_id, String status_id) {
+    public NewTicketRequest(double amount, String description, String type_id) {
         this.amount = amount;
         this.description = description;
         this.type_id = type_id;
-        this.status_id = status_id;
+
     }
 
-    public BigDecimal getAmount() {
+
+
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
@@ -54,6 +58,14 @@ public class NewTicketRequest {
         this.status_id = status_id;
     }
 
+    public String getReimb_id() {
+        return reimb_id;
+    }
+
+    public void setReimb_id(String reimb_id) {
+        this.reimb_id = reimb_id;
+    }
+
     @Override
     public String toString() {
         return "NewTicketRequest{" +
@@ -63,4 +75,6 @@ public class NewTicketRequest {
                 ", status_id='" + status_id + '\'' +
                 '}';
     }
+
+
 }

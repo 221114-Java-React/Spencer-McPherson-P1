@@ -34,6 +34,8 @@ public class AuthHandler {
         logger.info("Attempting to login..");
         try {
             Principal principal = ersUserService.login(req);
+            if(principal.isIs_Active()==false) throw new InvalidAuthException("Your account must be validated");
+
             //generate token from principal obj
             String token = tokenService.generateToken(principal);
             //set header with auth token

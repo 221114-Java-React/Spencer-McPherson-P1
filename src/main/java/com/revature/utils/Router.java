@@ -46,17 +46,20 @@ public class Router {
                 get(c-> ersUserHandler.getAllUsers(c));
                 get("/name",ersUserHandler::getAllUsersByUsername);
                 post(c -> ersUserHandler.signup(c));
+                get("/all",ersReimbursementHandler::getAllTickets);
             });
 
             //auth
             path("auth", () -> {
                 post(c -> authHandler.authenticateUser(c));
+                patch("/update",ersUserHandler::updateUser);
             });
 
             //ticket
             path("/ticket", () -> {
                post(c-> ersReimbursementHandler.newTicket(c));
-               post("/process",ersReimbursementHandler::processTicketA);
+               patch("/process",ersReimbursementHandler::processTicketA);
+               get("/pending",ersReimbursementHandler::getAllPending);
             });
 
         });

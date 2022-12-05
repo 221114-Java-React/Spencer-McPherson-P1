@@ -1,7 +1,11 @@
 package com.revature.handlers;
 
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.revature.dtos.requests.NewUpdateRequest;
 import com.revature.dtos.requests.NewUserRequest;
+import com.revature.dtos.requests.UserAuthRequest;
 import com.revature.dtos.responses.Principal;
 import com.revature.models.ErsUser;
 import com.revature.services.ErsUserService;
@@ -15,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 public class ErsUserHandler {
@@ -34,12 +39,26 @@ public class ErsUserHandler {
     public void signup(Context c) throws IOException {
         NewUserRequest req = mapper.readValue(c.req.getInputStream(), NewUserRequest.class);
         try {
-            ersUserService.saveErsUser(req);
-            c.status(201); // CREATED
 
+
+            logger.info("Attempting to sign up..");
+            ErsUser createdUser;
+            if (ersUserService.isValidUsername(req.getUsername())) {
+                if (!ersUserService.isDuplicateUsername(req.getUsername())) {
+                    if (ersUserService.isValidPassword(req.getPassword1())) {
+                        if (ersUserService.isSamePassword(req.getPassword1(), req.getPassword2())) {
+                            createdUser = ersUserService.saveErsUser(req);
+                        } else throw new InvalidUserException("Passwords do not match");
+                    } else throw new InvalidUserException("Password needs to be minimum 8 characters long, and one number");
+                } else throw new InvalidUserException("Username is already taken");
+            } else throw new InvalidUserException("Username needs to be 8 - 20 characters long");
+            c.status(201); // CREATED
+            c.json(createdUser.getUserID());
+            logger.info("Signup attempt successful.");
         } catch (InvalidUserException e) {
             c.status(403); // FORBIDDEN
             c.json(e);
+            logger.info("Sign up unsuccessful..");
         }
 
 
@@ -51,9 +70,9 @@ public class ErsUserHandler {
             String token = ctx.req.getHeader("authorization");
             if (token == null || token.isEmpty()) throw new InvalidAuthException("You are not signed in");
             Principal principal = tokenService.extractRequesterDetails(token);
-            logger.info(principal.toString());
+            //logger.info(principal.toString());
             if (principal == null) throw new InvalidAuthException("Invalid token");
-            if (!principal.getRole().equals("2")) throw new InvalidAuthException("You are not authorized to do this");
+            if (!principal.getRole().equals("3")) throw new InvalidAuthException("You are not authorized to do this");
 
             List<ErsUser> users = ErsUserService.getAllUsers();
 
@@ -79,6 +98,33 @@ public class ErsUserHandler {
         } catch (InvalidAuthException e) {
             ctx.status(401);
             ctx.json(e);
+        }
+    }
+    public void updateUser(Context ctx) {
+        try {
+            UserAuthRequest req = mapper.readValue(ctx.req.getInputStream(), UserAuthRequest.class);
+            String token = ctx.req.getHeader("Authorization");
+            if (token == null || token.isEmpty()) throw new InvalidAuthException("You are not signed in");
+
+            Principal principal = tokenService.extractRequesterDetails(token);
+            if (principal == null) throw new InvalidAuthException("Invalid token");
+            if (!principal.getRole().equals("3")) throw new InvalidAuthException("You are not authorized to do this");
+
+            ersUserService.updateUser(req);
+
+
+        } catch (InvalidAuthException e) {
+            ctx.status(401);
+            ctx.json(e);
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (StreamReadException e) {
+            throw new RuntimeException(e);
+        } catch (DatabindException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

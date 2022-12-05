@@ -1,5 +1,6 @@
 package com.revature.daos;
 
+import com.revature.models.ErsReimbursement;
 import com.revature.models.ErsUser;
 import com.revature.utils.ConnectionFactory;
 
@@ -26,13 +27,27 @@ public class ErsUserDAO implements CrudDAO<ErsUser> {
             ps.setString(4,obj.getPassword());
             ps.setString(5,obj.getGiven_name());
             ps.setString(6,obj.getSurname());
-            ps.setBoolean(7, obj.getIs_Active());
+            ps.setBoolean(7, false);
             ps.setString(8,obj.getRole());
             ps.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+    }
+    public static void updateU(ErsUser obj) throws SQLException {
+        ErsUser userUpdate = new ErsUser();
+        try (Connection con = ConnectionFactory.getInstance().getConnection()) {
+            PreparedStatement ps = con.prepareStatement("UPDATE ers_users SET is_active =?, role_id=?  WHERE user_id= ?");
+            ps.setBoolean(1, obj.getIs_Active());
+            ps.setString(2, obj.getRole());
+            ps.setString(3, obj.getUserID());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -125,5 +140,37 @@ public class ErsUserDAO implements CrudDAO<ErsUser> {
             e.printStackTrace();
         }
         return users;
+    }
+    public static List<String> findAllIsActive() {
+        List<String> usernames = new ArrayList<>();
+        try (Connection con = ConnectionFactory.getInstance().getConnection()) {
+            PreparedStatement ps = con.prepareStatement("SELECT (username) from ers_users WHERE is_active = true");
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()) {
+                String currentUsername = rs.getString("username");
+                usernames.add(currentUsername);
+
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return usernames;
+    }
+    public static List<String> findAllIsNotActive() {
+        List<String> usernames = new ArrayList<>();
+        try (Connection con = ConnectionFactory.getInstance().getConnection()) {
+            PreparedStatement ps = con.prepareStatement("SELECT (user_id) from ers_users WHERE is_active = false");
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()) {
+                String currentUsername = rs.getString("user_id");
+                usernames.add(currentUsername);
+
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return usernames;
     }
 }

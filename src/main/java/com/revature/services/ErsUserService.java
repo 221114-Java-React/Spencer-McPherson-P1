@@ -2,12 +2,15 @@ package com.revature.services;
 
 import com.revature.daos.ErsUserDAO;
 import com.revature.dtos.requests.NewLoginRequest;
+import com.revature.dtos.requests.NewUpdateRequest;
 import com.revature.dtos.requests.NewUserRequest;
+import com.revature.dtos.requests.UserAuthRequest;
 import com.revature.dtos.responses.Principal;
 import com.revature.models.ErsUser;
 import com.revature.utils.custom_exceptions.InvalidAuthException;
 import com.revature.utils.custom_exceptions.InvalidUserException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,15 +32,23 @@ public class ErsUserService {
         return ErsUserDAO.getAllUsersByUsername(username);
     }
 
+    public static boolean getAllActive(String username) {
+        List<String> usernames=  ErsUserDAO.findAllIsActive();
+        return usernames.contains(username);
+    }
 
-    public void saveErsUser (NewUserRequest req) {
+    public static void updateUser(UserAuthRequest req) throws SQLException {
+        List<String> list = ErsUserDAO.findAllIsNotActive();
+        if(!list.contains(req.getUser_id())) throw new InvalidAuthException("User is already activated");
+        ErsUser updated = new ErsUser(req.getUser_id(), null,null,null,null,null,true, req.getRole_id());
+        ErsUserDAO.updateU(updated);
+    }
+
+    public ErsUser saveErsUser (NewUserRequest req) {
         List<String> usernames= ersUserDAO.findAllUsernames();
-        if (!isValidUsername(req.getUsername())) throw new InvalidUserException("Username needs to be 8-20 characters long");
-        if (usernames.contains(req.getUsername())) throw new InvalidUserException("Username is already taken :(");
-        if (!isValidPassword(req.getPassword1())) throw new InvalidUserException("Password needs to be minimum eight characters, at least one letter and one number");
-        if (!req.getPassword1().equals(req.getPassword2())) throw new InvalidUserException("Passwords do not match :(");
         ErsUser createdUser = new ErsUser(UUID.randomUUID().toString(),req.getUsername(),req.getEmail(),req.getPassword1(),req.getGiven_name(),req.getSurname(),false,"1");
         ersUserDAO.save(createdUser);
+        return createdUser;
     }
 
     public Principal login(NewLoginRequest req) {
@@ -49,14 +60,24 @@ public class ErsUserService {
         return principal;
 
     }
-    private boolean isValidUsername(String username) {
+    public boolean isValidUsername(String username) {
         return username.matches("^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$");
 
     }
 
-    private boolean isValidPassword(String password) {
+    public boolean isValidPassword(String password) {
         return password.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
 
     }
+    public boolean isDuplicateUsername(String username) {
+        List<String> usernames = ersUserDAO.findAllUsernames();
+        return usernames.contains(username);
+    }
 
+
+
+    public boolean isSamePassword(String password1, String password2) {
+        return password1.equals(password2);
+    }
 }
+

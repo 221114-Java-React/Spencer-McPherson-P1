@@ -1,6 +1,6 @@
 package com.revature.models;
 
-import java.math.BigDecimal;
+
 import java.sql.Timestamp;
 import java.util.Arrays;
 
@@ -8,7 +8,7 @@ public class ErsReimbursement {
 
     private String reimb_id;
 
-    private BigDecimal amount;
+    private double amount;
 
     private Timestamp submitted;
 
@@ -32,7 +32,7 @@ public class ErsReimbursement {
         super();
     }
 
-    public ErsReimbursement(String reimb_id, BigDecimal amount, Timestamp submitted, Timestamp resolved, String description, byte[] receipt, String payment_id, String author_id, String resolver_id, String status_id, String type_id) {
+    public ErsReimbursement(String reimb_id, double amount, Timestamp submitted, Timestamp resolved, String description, byte[] receipt, String payment_id, String author_id, String resolver_id, String status_id, String type_id) {
         this.reimb_id = reimb_id;
         this.amount = amount;
         this.submitted = submitted;
@@ -46,6 +46,13 @@ public class ErsReimbursement {
         this.type_id = type_id;
     }
 
+    public ErsReimbursement(String reimb_id, Timestamp resolved, String resolver_id, String status_id) {
+        this.reimb_id = reimb_id;
+        this.resolved = resolved;
+        this.resolver_id = resolver_id;
+        this.status_id = status_id;
+    }
+
     public String getReimb_id() {
         return reimb_id;
     }
@@ -54,11 +61,11 @@ public class ErsReimbursement {
         this.reimb_id = reimb_id;
     }
 
-    public BigDecimal getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 

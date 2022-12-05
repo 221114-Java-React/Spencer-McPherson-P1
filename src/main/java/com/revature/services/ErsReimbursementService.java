@@ -2,9 +2,12 @@ package com.revature.services;
 
 import com.revature.daos.ErsReimbursementDAO;
 import com.revature.dtos.requests.NewTicketRequest;
-import com.revature.dtos.responses.Principal;
+import com.revature.dtos.requests.NewUpdateRequest;
 import com.revature.models.ErsReimbursement;
+import com.revature.utils.custom_exceptions.InvalidAuthException;
+import com.revature.utils.custom_exceptions.InvalidTicketException;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -12,30 +15,50 @@ import java.util.UUID;
 
 public class ErsReimbursementService {
     //takes data from dao and validates
-    private final ErsReimbursementDAO ersReimbursementDAO;
+    private  final ErsReimbursementDAO ersReimbursementDAO;
 
     public ErsReimbursementService(ErsReimbursementDAO ersReimbursementDAO) {
         this.ersReimbursementDAO = ersReimbursementDAO;
     }
     public static List<ErsReimbursement> getAllTickets() {
+
         return ErsReimbursementDAO.findAll();
     }
 
-    //String reimb_id, String amount, String submitted, String resolved, String description, String receipt, String payment_id, String author_id, String resolver_id, String status_id, String type_id
-    public void saveTicket(NewTicketRequest req, String author_id,String type_id,String status_id) {
+    public static ErsReimbursement getTicket(String id) {
+        return  ErsReimbursementDAO.findAllById(id);
+    }
 
-
-        ErsReimbursement createdTicket = new ErsReimbursement(UUID.randomUUID().toString(),req.getAmount(), Timestamp.from(Instant.now()),null,req.getDescription(),null,null,author_id,null,status_id,type_id);
+    public void saveTicket(NewTicketRequest req, String author_id) {
+        String type_id = ersReimbursementDAO.findByType(req.getType_id());
+        ErsReimbursement createdTicket = new ErsReimbursement(UUID.randomUUID().toString(),req.getAmount(), Timestamp.from(Instant.now()),null,req.getDescription(),null,null,author_id,null,"1", req.getType_id());
         ersReimbursementDAO.save(createdTicket);
     }
 
-    public void updateTicketA(ErsReimbursement ticket) {
-        ErsReimbursement updateTicket = new ErsReimbursement(ticket.getReimb_id(), ticket.getAmount(),ticket.getSubmitted(),ticket.getResolved(),ticket.getDescription(),ticket.getReceipt(),ticket.getPayment_id(),ticket.getAuthor_id(), ticket.getResolver_id(), "2", ticket.getType_id());
+    public void updateTicketA(NewUpdateRequest req,String resolver_id) throws SQLException {
+        List<String> list = ErsReimbursementDAO.getByStatusId();
+        long time = System.currentTimeMillis();
+        Timestamp timeNow = new Timestamp(time);
+
+        if (!list.contains(req.getReimb_id())) {
+            throw new InvalidAuthException("Ticket has already been processed or ticket has wrong id");
+
+        }
+//        String status_id = ersReimbursementDAO.findByStatusId(req.getStatus_id());
+        ErsReimbursement updateTicket = new ErsReimbursement(req.getReimb_id(),timeNow,resolver_id, req.getStatus_id());
+        ErsReimbursementDAO.updateA(updateTicket);
+
 
     }
-    public void updateTicketD(ErsReimbursement ticket) {
-        ErsReimbursement updateTicket = new ErsReimbursement(ticket.getReimb_id(), ticket.getAmount(),ticket.getSubmitted(),ticket.getResolved(),ticket.getDescription(),ticket.getReceipt(),ticket.getPayment_id(),ticket.getAuthor_id(), ticket.getResolver_id(), "3", ticket.getType_id());
 
+    public static List<ErsReimbursement> fetchAllPending() {
+        return ErsReimbursementDAO.findAllPending();
     }
+
+    public static List<ErsReimbursement> fetchAllTickets(String author_id) {
+        return ErsReimbursementDAO.findAllTickets(author_id);
+    }
+
+
 
 }
